@@ -25,13 +25,13 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 
-
+GCC_PREFIX = arm-eabi-
 
 # Tool invocations
 IBDAP.axf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -Xlinker -Map="IBDAP.map" -Xlinker --gc-sections -Xlinker --trace -mcpu=cortex-m0 -mthumb -T "IBDAP.ld" -o "IBDAP.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	$(GCC_PREFIX)gcc -nostdlib -Xlinker -Map="IBDAP.map" -Xlinker --gc-sections -Xlinker --trace -mcpu=cortex-m0 -mthumb -T "IBDAP.ld" -o "IBDAP.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -43,7 +43,9 @@ clean:
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "IBDAP.axf" ; arm-none-eabi-objcopy -v -O binary "IBDAP.axf" "IBDAP.bin" ; ./checksum -p LPC11U35_501 -d "IBDAP.bin"
+	$(GCC_PREFIX)size "IBDAP.axf"
+	$(GCC_PREFIX)objcopy -v -O binary "IBDAP.axf" "IBDAP.bin" 	
+	checksum -p LPC11U35_401 -d "IBDAP.bin"
 	-@echo ' '
 
 .PHONY: all clean dependents
