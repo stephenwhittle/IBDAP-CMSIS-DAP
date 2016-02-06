@@ -53,7 +53,7 @@ Provides definitions about:
 
 /// Indicate that JTAG communication mode is available at the Debug Port.
 /// This information is returned by the command \ref DAP_Info as part of <b>Capabilities</b>.
-#define DAP_JTAG                1               ///< JTAG Mode: 1 = available, 0 = not available.
+#define DAP_JTAG                0               ///< JTAG Mode: 1 = available, 0 = not available.
 
 /// Configure maximum number of JTAG devices on the scan chain connected to the Debug Access Port.
 /// This setting impacts the RAM requirements of the Debug Unit. Valid range is 1 .. 255.
@@ -110,9 +110,9 @@ Provides definitions about:
 #define PIN_SWCLK_TCK_IOCON     LPC_IOCON->PIO0_7
 
 // SWDIO/TMS In/Out Pin         PIO0_8
-#define PIN_SWDIO_IN_BIT        8
+#define PIN_SWDIO_IN_BIT        28
 #define PIN_SWDIO               (1 << PIN_SWDIO_IN_BIT)
-#define PIN_SWDIO_TMS_IOCON     LPC_IOCON->PIO0_8
+#define PIN_SWDIO_TMS_IOCON     LPC_IOCON->PIO1_28
 
 // nRESET Pin                   PIO0_2
 #define PIN_nRESET_IN_BIT       2
@@ -190,15 +190,17 @@ Configures the DAP Hardware I/O pins for Serial Wire Debug (SWD) mode:
 */
 static __inline void PORT_SWD_SETUP (void) {
     LPC_GPIO->SET[0] = PIN_SWCLK;
-    LPC_GPIO->SET[0] = PIN_SWDIO;
+    LPC_GPIO->SET[1] = PIN_SWDIO;
 #if defined(CONF_OPENDRAIN)
     // open drain logic
     LPC_GPIO->DIR[0] &= ~PIN_nRESET;
     LPC_GPIO->CLR[0]  =  PIN_nRESET; 
-    LPC_GPIO->DIR[0] |= (PIN_SWCLK | PIN_SWDIO);
+    LPC_GPIO->DIR[0] |= (PIN_SWCLK);
+    LPC_GPIO->DIR[1] |= (PIN_SWDIO);
 #else
     LPC_GPIO->SET[0] = PIN_nRESET;
-    LPC_GPIO->DIR[0]  |= (PIN_SWCLK | PIN_SWDIO | PIN_nRESET);
+    LPC_GPIO->DIR[0]  |= (PIN_SWCLK | PIN_nRESET);
+    LPC_GPIO->DIR[1] |= (PIN_SWDIO);
 #endif
 }
 
@@ -208,15 +210,17 @@ Disables the DAP Hardware I/O pins which configures:
 */
 static __inline void PORT_OFF (void) {
     LPC_GPIO->CLR[0] = PIN_SWCLK;
-    LPC_GPIO->CLR[0] = PIN_SWDIO;
+    LPC_GPIO->CLR[1] = PIN_SWDIO;
 #if defined(CONF_OPENDRAIN)
     // open drain logic
     LPC_GPIO->DIR[0] &= ~PIN_nRESET; // reset not an output
     LPC_GPIO->CLR[0]  =  PIN_nRESET;
-    LPC_GPIO->DIR[0] |= (PIN_SWCLK | PIN_SWDIO); 
+    LPC_GPIO->DIR[0] |= (PIN_SWCLK); 
+    LPC_GPIO->DIR[1] |= (PIN_SWDIO);
 #else
     LPC_GPIO->SET[0] = PIN_nRESET;
-    LPC_GPIO->DIR[0] |= (PIN_SWCLK | PIN_SWDIO | PIN_nRESET);
+    LPC_GPIO->DIR[0] |= (PIN_SWCLK | PIN_nRESET);
+    LPC_GPIO->DIR[1] |= (PIN_SWDIO);
 #endif
 }
 
@@ -251,28 +255,28 @@ static __forceinline void     PIN_SWCLK_TCK_CLR (void) {
 \return Current status of the SWDIO/TMS DAP hardware I/O pin.
 */
 static __forceinline uint32_t PIN_SWDIO_TMS_IN  (void) {
-    return LPC_GPIO->B[PIN_SWDIO_IN_BIT] & 0x1;
+    return LPC_GPIO->B1[PIN_SWDIO_IN_BIT] & 0x1;
 }
 
 /** SWDIO/TMS I/O pin: Set Output to High.
 Set the SWDIO/TMS DAP hardware I/O pin to high level.
 */
 static __forceinline void     PIN_SWDIO_TMS_SET (void) {
-    LPC_GPIO->SET[0] = (PIN_SWDIO);
+    LPC_GPIO->SET[1] = (PIN_SWDIO);
 }
 
 /** SWDIO/TMS I/O pin: Set Output to Low.
 Set the SWDIO/TMS DAP hardware I/O pin to low level.
 */
 static __forceinline void     PIN_SWDIO_TMS_CLR (void) {
-    LPC_GPIO->CLR[0] = (PIN_SWDIO);
+    LPC_GPIO->CLR[1] = (PIN_SWDIO);
 }
 
 /** SWDIO I/O pin: Get Input (used in SWD mode only).
 \return Current status of the SWDIO DAP hardware I/O pin.
 */
 static __forceinline uint32_t PIN_SWDIO_IN      (void) {
-    return LPC_GPIO->B[PIN_SWDIO_IN_BIT] & 0x1;
+    return LPC_GPIO->B1[PIN_SWDIO_IN_BIT] & 0x1;
 }
 
 /** SWDIO I/O pin: Set Output (used in SWD mode only).
@@ -280,9 +284,9 @@ static __forceinline uint32_t PIN_SWDIO_IN      (void) {
 */
 static __forceinline void     PIN_SWDIO_OUT     (uint32_t bit){
     if (bit & 0x1)
-        LPC_GPIO->SET[0] = (PIN_SWDIO);
+        LPC_GPIO->SET[1] = (PIN_SWDIO);
     else
-        LPC_GPIO->CLR[0] = (PIN_SWDIO);
+        LPC_GPIO->CLR[1] = (PIN_SWDIO);
 }
 
 /** SWDIO I/O pin: Switch to Output mode (used in SWD mode only).
@@ -290,7 +294,7 @@ Configure the SWDIO DAP hardware I/O pin to output mode. This function is
 called prior \ref PIN_SWDIO_OUT function calls.
 */
 static __forceinline void     PIN_SWDIO_OUT_ENABLE  (void) {
-    LPC_GPIO->DIR[0]  |= (PIN_SWDIO);
+    LPC_GPIO->DIR[1]  |= (PIN_SWDIO);
 }
 
 /** SWDIO I/O pin: Switch to Input mode (used in SWD mode only).
@@ -298,7 +302,7 @@ Configure the SWDIO DAP hardware I/O pin to input mode. This function is
 called prior \ref PIN_SWDIO_IN function calls.
 */
 static __forceinline void     PIN_SWDIO_OUT_DISABLE (void) {
-    LPC_GPIO->DIR[0]  &= ~(PIN_SWDIO);
+    LPC_GPIO->DIR[1]  &= ~(PIN_SWDIO);
 }
 
 
