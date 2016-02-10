@@ -13,7 +13,8 @@ C_SRCS += \
 ../src/system_LPC11Uxx.c \
 ../src/uart.c \
 ../src/usb_desc.c \
-../src/usb_driver.c 
+../src/usb_driver.c \
+../src/cdc_vcom.c
 
 OBJS += \
 ./src/DAP.o \
@@ -25,7 +26,8 @@ OBJS += \
 ./src/system_LPC11Uxx.o \
 ./src/uart.o \
 ./src/usb_desc.o \
-./src/usb_driver.o 
+./src/usb_driver.o  \
+./src/cdc_vcom.o
 
 C_DEPS += \
 ./src/DAP.d \
@@ -37,7 +39,8 @@ C_DEPS += \
 ./src/system_LPC11Uxx.d \
 ./src/uart.d \
 ./src/usb_desc.d \
-./src/usb_driver.d 
+./src/usb_driver.d \
+./src/cdc_vcom.d
 
 
 # Each subdirectory must supply rules for building sources it contributes

@@ -20,7 +20,7 @@
 
 USBD_HANDLE_T g_usb_hnd;
 const  USBD_API_T *g_pUsbApi;
-
+USB_CORE_DESCS_T desc;
 
 /* Find the address of interface descriptor for given class type. */
 USB_INTERFACE_DESCRIPTOR *find_IntfDesc(const uint8_t *pDesc, uint32_t intfClass)
@@ -97,7 +97,7 @@ void USB_IRQHandler(void) {
 }
 
 int init_usb_driver (USBD_API_INIT_PARAM_T *usb_param) {
-	USB_CORE_DESCS_T desc;
+	
 	ErrorCode_t ret = LPC_OK;
 
 	g_pUsbApi = (const USBD_API_T *) LPC_ROM_API->usbdApiBase;
@@ -111,7 +111,7 @@ int init_usb_driver (USBD_API_INIT_PARAM_T *usb_param) {
 		    to avoid data corruption. Corruption of padding memory doesn’t affect the
 		    stack/program behaviour.
 	*/
-	usb_param->max_num_ep = 2 + 1;
+	usb_param->max_num_ep = 4 + 1;
 	usb_param->mem_base = USB_STACK_MEM_BASE;
 	usb_param->mem_size = USB_STACK_MEM_SIZE;
 
@@ -171,9 +171,10 @@ int init_usb_hid (USBD_API_INIT_PARAM_T *usb_param,
 	hid_param.mem_base += report_size;
 	hid_param.mem_size -= report_size;
 	/* update memory variables */
-	usb_param->mem_base = hid_param.mem_base;
+	
 	usb_param->mem_size = hid_param.mem_size;
-	return 0;
+	usb_param->mem_base = USB_STACK_MEM_BASE + (USB_STACK_MEM_SIZE - usb_param->mem_size);
+    return 0;
 }
 
 void connect_to_usb_bus () {

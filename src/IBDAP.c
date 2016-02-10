@@ -12,13 +12,15 @@
 #include "LPC11Uxx.h"
 #endif
 
+
 #include "DAP_config.h"
 
 #include "DAP.h"
 
 #include "usb_driver.h"
 
-
+#include "cdc_vcom.h"
+static uint8_t g_rxBuff[256];
 
 #define TICKRATE_100msec (10)
 #define TICKRATE_10msec  (100)
@@ -185,8 +187,10 @@ void device_boot() {
 	LPC_SYSCON->SYSAHBCLKCTRL |= 1 << 6; // enable gpio clock
 }
 
+extern  USB_CORE_DESCS_T desc;
+bool prompt;
 int main(void) {
-
+    prompt = false;
 	device_boot();
 
 	USBD_API_INIT_PARAM_T usb_param;
@@ -216,7 +220,7 @@ int main(void) {
     	error_code (1);
     	return -1;
     }
-
+    vcom_init( ( USBD_API_T *) g_pUsbApi, &desc, &usb_param);
     connect_to_usb_bus ();
     //LED_ERROR_ON ();
     while (1) {
@@ -246,6 +250,17 @@ int main(void) {
     		//LED_RUNNING_OUT (1);
     		//LED_CONNECTED_OUT (0);
     	}
-
+           
+        if ((vcom_connected() != 0) && (prompt == 0)) {
+				vcom_write((unsigned char*)"Hello World!!\r\n", 15);
+				prompt = 1;
+			}
+			/* If VCOM port is opened echo whatever we receive back to host. */
+			if (prompt) {
+				uint8_t rdCnt = vcom_bread(&g_rxBuff[0], 256);
+				if (rdCnt) {
+					vcom_write(&g_rxBuff[0], rdCnt);
+				}
+			}
     }
 }

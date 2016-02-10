@@ -40,6 +40,16 @@ extern "C"
 {
 #endif
 
+
+
+#define USB_CDC_CIF_NUM                     1
+#define USB_CDC_DIF_NUM                     2
+#define USB_CDC_IN_EP                       0x82
+#define USB_CDC_OUT_EP                      0x01
+#define USB_CDC_INT_EP                      0x83
+
+
+
 /** @ingroup EXAMPLES_USBDROM_11UXX_HID_GENERIC
  * @{
  */
